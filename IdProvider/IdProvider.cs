@@ -1,13 +1,12 @@
 namespace IdProvider;
 
 public class IdProvider {
-    private uint idPtr;
+    private uint nextId;
     private int poolSize;
     private int idRecycleBufferSize;
-    private Stack<uint> idPool;
+    private readonly Stack<uint> idPool;
 
     public IdProvider(int poolSize = 100, int idRecycleBufferSize = 10) {
-        idPtr = 0;
         this.poolSize = poolSize;
         this.idRecycleBufferSize = idRecycleBufferSize;
         idPool = new Stack<uint>(poolSize + idRecycleBufferSize);
@@ -15,7 +14,11 @@ public class IdProvider {
         FillIdPool();
     }
 
-    public uint NewId() {
+    /// <summary>
+    /// Retrieves the next id from the pool.
+    /// </summary>
+    /// <returns></returns>
+    public uint NextId() {
         if (idPool.Count > 0) {
             return idPool.Pop();
         }
@@ -24,6 +27,11 @@ public class IdProvider {
         return idPool.Pop();
     }
 
+    /// <summary>
+    /// <para>Frees an id to be reused.</para>
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="validateId"></param>
     public void FreeId(uint id, bool validateId = false) {
         if (validateId) {
             if (!idPool.Contains(id)) {
@@ -36,22 +44,16 @@ public class IdProvider {
     }
 
     /// <summary>
-    /// Adds the next poolSize ids to the pool.
+    /// <para>Adds the next poolSize ids to the pool.</para>
+    /// <para>Generally, this method should not be called manually.</para>
     /// </summary>
     public void FillIdPool() {
         idPool.EnsureCapacity(idPool.Count + poolSize + idRecycleBufferSize);
-
-        for (int i = 0; i < poolSize; i++) {
-            idPool.Push(idPtr++);
+        
+        for (int i = poolSize - 1; i >= 0; i--) {
+            idPool.Push((uint)(nextId + i));
         }
-    }
 
-    /// <summary>
-    /// Adds ids to the pool until poolSize is reached.
-    /// </summary>
-    public void FillIdPoolToCapacity() {
-        while (idPool.Count < poolSize) {
-            idPool.Push(idPtr++);
-        }
+        nextId += (uint)poolSize;
     }
 }

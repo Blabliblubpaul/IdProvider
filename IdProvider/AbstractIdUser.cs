@@ -9,8 +9,9 @@ public class AbstractIdUser : IDisposable {
 
     public AbstractIdUser(IdProvider idProvider, bool validateIdOnFree) {
         IdProvider = idProvider;
-        Id = idProvider.NewId();
         ValidateIdOnFree = validateIdOnFree;
+        
+        Id = idProvider.NextId();
     }
 
     ~AbstractIdUser() {
